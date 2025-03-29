@@ -2,34 +2,34 @@ import pygame
 import random
 from pygame.locals import K_DOWN, K_LEFT, K_UP, K_RIGHT
 
+# system
+FPS = pygame.time.Clock(); HEIGHT = 800; WIDTH = 1200
+# colors
+COLOR_WHITE = (255, 255, 255); COLOR_YELLOW = (255, 255, 0); COLOR_BLACK = (0, 0, 0); COLOR_BLUE = (0, 0, 255)
+# speed
+PLAYER_SPD = 3; MIN_ENEMY_SPD = 1; MAX_ENEMY_SPD = 6; MIN_BONUS_SPD = 1; MAX_BONUS_SPD = 3
+# events
+CREATE_ENEMY = pygame.USEREVENT + 1; CREATE_BONUS = pygame.USEREVENT + 2
+
 pygame.init()
-
-FPS = pygame.time.Clock()
-HEIGHT = 800
-WIDTH = 1200
-COLOR_WHITE = (255, 255, 255)
-COLOR_YELLOW = (255, 255, 0)
-COLOR_BLACK = (0, 0, 0)
-COLOR_BLUE = (0, 0, 255)
-PLAYER_SPEED = 2
-
+pygame.time.set_timer(CREATE_ENEMY, 1500)
+pygame.time.set_timer(CREATE_BONUS, random.randint(2000, 5000))
 main_display = pygame.display.set_mode((WIDTH, HEIGHT)) # tuple(кортеж) immutable
+playing = True; enemies = []; bonuses = []
 
-playing = True
-enemies = []
-bonuses = []
-
+# player
 player_size = (20, 20)
 player = pygame.Surface(player_size)
 player.fill(COLOR_WHITE)
 player_coords = player.get_rect()
+player_move_down = [0, PLAYER_SPD]; player_move_right = [PLAYER_SPD, 0]; player_move_left = [-PLAYER_SPD, 0]; player_move_up = [0, -PLAYER_SPD]
 
 def create_enemy():
   enemy_size = (30, 30)
   enemy = pygame.Surface(enemy_size)
   enemy.fill(COLOR_BLUE)
   enemy_coords = pygame.Rect(WIDTH, random.randint(0, HEIGHT), *enemy_size)
-  enemy_speed = random.randint(-6, -1)
+  enemy_speed = random.randint(-MAX_ENEMY_SPD, -MIN_ENEMY_SPD)
   enemy_move = [enemy_speed, 0]
   return [enemy, enemy_coords, enemy_move]
 
@@ -39,17 +39,9 @@ def create_bonus():
   bonus.fill(COLOR_YELLOW)
   left, top = (random.randint(0, int(WIDTH / 2)), -bonus_size[1])
   bonus_coords = pygame.Rect(left, top, *bonus_size)
-  bonus_speed = random.randint(1, 3)
+  bonus_speed = random.randint(MIN_BONUS_SPD, MAX_BONUS_SPD)
   bonus_move = [0, bonus_speed]
   return [bonus, bonus_coords, bonus_move]
-
-player_move_down = [0, PLAYER_SPEED]; player_move_right = [PLAYER_SPEED, 0]
-player_move_left = [-PLAYER_SPEED, 0]; player_move_up = [0, -PLAYER_SPEED]
-
-CREATE_ENEMY = pygame.USEREVENT + 1
-CREATE_BONUS = pygame.USEREVENT + 2
-pygame.time.set_timer(CREATE_ENEMY, 1500)
-pygame.time.set_timer(CREATE_BONUS, random.randint(2000, 5000))
 
 while playing:
   FPS.tick(144)
