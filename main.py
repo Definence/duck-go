@@ -78,11 +78,11 @@ while playing:
   pygame.display.flip() # update main display
 
   for enemy in enemies:
-    if enemy[1].left < 0:
+    if enemy[1].right < 0:
       i = enemies.index(enemy)
       enemies.pop(i)
 
   for bonus in bonuses:
-    if bonus[1].left < 0:
+    if bonus[1].top > HEIGHT:
       i = bonuses.index(bonus)
       bonuses.pop(i)
