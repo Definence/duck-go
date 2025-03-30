@@ -4,6 +4,7 @@ import os
 from pygame.locals import K_DOWN, K_LEFT, K_UP, K_RIGHT
 
 pygame.init()
+DEBUG_MODE = True  # Add debug mode flag
 
 def create_enemy():
   enemy = pygame.image.load('images/enemy.png').convert_alpha()
@@ -27,7 +28,8 @@ def create_bonus():
 FPS = pygame.time.Clock(); HEIGHT = 800; WIDTH = 1200; FONT = pygame.font.SysFont('Verdana', 16)
 BG = pygame.transform.scale(pygame.image.load('images/background.png'), (WIDTH, HEIGHT))
 # colors
-COLOR_WHITE = (255, 255, 255); COLOR_YELLOW = (255, 255, 0); COLOR_BLACK = (0, 0, 0); COLOR_BLUE = (0, 0, 255)
+COLOR_WHITE = (255, 255, 255); COLOR_YELLOW = (255, 255, 0); COLOR_BLACK = (0, 0, 0);
+COLOR_BLUE = (0, 0, 255); COLOR_RED = (255, 0, 0)
 # speed
 BG_SPD = 1; PLAYER_SPD = 3 + BG_SPD
 MIN_BONUS_SPD = 1; MAX_BONUS_SPD = 3
@@ -46,8 +48,8 @@ playing = True; enemies = []; bonuses = []; score = 0; lost = False
 bg_X1 = 0; bg_X2 = BG.get_width(); bg_move = BG_SPD
 
 # player
-player_image = pygame.image.load('images/player.png').convert_alpha(); player_size = player_image.get_size()
-player = player_image
+player_image = pygame.image.load('images/player.png').convert_alpha();
+player_size = player_image.get_size(); player = player_image
 # player_size = (20, 20); player = pygame.Surface(player_size)
 player_img_i = 0
 player_img_i_prev = len(PLAYER_IMAGES) - 1
@@ -64,11 +66,12 @@ while playing:
 
       s_curr = new_pl_image.get_size(); s_prev = prev_pl_image.get_size()
       w_diff = s_curr[0] - s_prev[0]; h_diff = s_curr[1] - s_prev[1]
-      player_coords = player_coords.move([0, -h_diff])
+      player_coords = player_coords.move([-w_diff, -h_diff])
 
       player = new_pl_image
       player_img_i_prev = player_img_i
       player_img_i += 1
+
       if player_img_i >= len(PLAYER_IMAGES):
         player_img_i = 0
     if event.type == CREATE_ENEMY:
@@ -102,12 +105,22 @@ while playing:
   # movement should be processed before render
   main_display.blit(player, player_coords) # placement
   main_display.blit(FONT.render(f"Score: {score}", True, COLOR_BLACK), (WIDTH - 85, 0))
+
+  # Draw collision boxes in debug mode
+  if DEBUG_MODE:
+    pygame.draw.rect(main_display, COLOR_RED, player_coords, 1)
+
   for enemy in enemies:
     enemy[1] = enemy[1].move(enemy[2])
     main_display.blit(enemy[0], enemy[1])
+    if DEBUG_MODE:
+      pygame.draw.rect(main_display, COLOR_RED, enemy[1], 1)
+
   for bonus in bonuses:
     bonus[1] = bonus[1].move(bonus[2])
     main_display.blit(bonus[0], bonus[1])
+    if DEBUG_MODE:
+      pygame.draw.rect(main_display, COLOR_RED, bonus[1], 1)
 
   # render
   if not lost:
@@ -117,8 +130,9 @@ while playing:
   # collision and items removal should be processed after render
   for enemy in enemies:
     if player_coords.colliderect(enemy[1]):
-      print(player_coords, enemy[1])
       lost = True
+      pygame.time.wait(2000)
+      playing = False
     if enemy[1].right < 0:
       i = enemies.index(enemy)
       enemies.pop(i)
@@ -131,3 +145,4 @@ while playing:
       score += 1
     if bonus[1].top > HEIGHT:
       bonuses.pop(bonuses.index(bonus))
+
