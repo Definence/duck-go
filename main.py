@@ -5,11 +5,8 @@ from pygame.locals import K_DOWN, K_LEFT, K_UP, K_RIGHT
 
 pygame.init()
 
-def adjust_player_size(image):
-  return pygame.transform.scale_by(image, 0.8)
-
 def create_enemy():
-  enemy = pygame.image.load('images/enemy.png')
+  enemy = pygame.image.load('images/enemy.png').convert_alpha()
   enemy_size = enemy.get_size()
   top = random.randint(enemy_size[0], HEIGHT - enemy_size[0])
   enemy_coords = pygame.Rect(WIDTH, top, *enemy_size)
@@ -18,7 +15,7 @@ def create_enemy():
   return [enemy, enemy_coords, enemy_move]
 
 def create_bonus():
-  bonus = pygame.image.load('images/bonus.png')
+  bonus = pygame.image.load('images/bonus.png').convert_alpha()
   bonus_size = bonus.get_size()
   left, top = (random.randint(int(WIDTH * 0.1), int(WIDTH * 0.7)), -bonus_size[1])
   bonus_coords = pygame.Rect(left, top, *bonus_size)
@@ -45,33 +42,41 @@ pygame.time.set_timer(CREATE_ENEMY, 1500)
 pygame.time.set_timer(CREATE_BONUS, random.randint(2000, 5000))
 pygame.time.set_timer(CHANGE_PLAYER_IMG, 100)
 main_display = pygame.display.set_mode((WIDTH, HEIGHT)) # tuple(кортеж) immutable
-playing = True; enemies = []; bonuses = []; score = 0
+playing = True; enemies = []; bonuses = []; score = 0; lost = False
 bg_X1 = 0; bg_X2 = BG.get_width(); bg_move = BG_SPD
 
 # player
-player_image = pygame.image.load('images/player.png')
+player_image = pygame.image.load('images/player.png').convert_alpha(); player_size = player_image.get_size()
+player = player_image
+# player_size = (20, 20); player = pygame.Surface(player_size)
 player_img_i = 0
-player_size = player_image.get_size()
-player = adjust_player_size(player_image)
+player_img_i_prev = len(PLAYER_IMAGES) - 1
 player_coords = pygame.Rect(int(WIDTH * 0.1), int(HEIGHT * 0.4), *player_size)
-player_move_down = [0, PLAYER_SPD]; player_move_right = [PLAYER_SPD, 0]; player_move_left = [-PLAYER_SPD, 0]; player_move_up = [0, -PLAYER_SPD]
+player_move_down = [0, PLAYER_SPD]; player_move_right = [PLAYER_SPD, 0];
+player_move_left = [-PLAYER_SPD, 0]; player_move_up = [0, -PLAYER_SPD]
 
 while playing:
-  FPS.tick(144)
+  FPS.tick(90)
   for event in pygame.event.get():
     if event.type == CHANGE_PLAYER_IMG:
-      new_player_image = pygame.image.load(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i]))
-      player = adjust_player_size(new_player_image)
+      new_pl_image = pygame.image.load(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i])).convert_alpha()
+      prev_pl_image = pygame.image.load(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i_prev])).convert_alpha()
+
+      s_curr = new_pl_image.get_size(); s_prev = prev_pl_image.get_size()
+      w_diff = s_curr[0] - s_prev[0]; h_diff = s_curr[1] - s_prev[1]
+      player_coords = player_coords.move([0, -h_diff])
+
+      player = new_pl_image
+      player_img_i_prev = player_img_i
       player_img_i += 1
       if player_img_i >= len(PLAYER_IMAGES):
         player_img_i = 0
-    elif event.type == CREATE_ENEMY:
+    if event.type == CREATE_ENEMY:
       enemies.append(create_enemy())
     elif event.type == CREATE_BONUS:
       bonuses.append(create_bonus())
     elif event.type == pygame.QUIT:
       playing = False
-
 
   # image animation
   bg_X1 -= bg_move
@@ -83,6 +88,7 @@ while playing:
   main_display.blit(BG, (bg_X1, 0))
   main_display.blit(BG, (bg_X2, 0))
 
+  # key binding
   keys = pygame.key.get_pressed()
   if keys[K_DOWN] and player_coords.bottom < HEIGHT:
     player_coords = player_coords.move(player_move_down)
@@ -93,34 +99,35 @@ while playing:
   elif keys[K_UP] and player_coords.top > 0:
     player_coords = player_coords.move(player_move_up)
 
+  # movement should be processed before render
+  main_display.blit(player, player_coords) # placement
+  main_display.blit(FONT.render(f"Score: {score}", True, COLOR_BLACK), (WIDTH - 85, 0))
   for enemy in enemies:
     enemy[1] = enemy[1].move(enemy[2])
     main_display.blit(enemy[0], enemy[1])
-
   for bonus in bonuses:
     bonus[1] = bonus[1].move(bonus[2])
     main_display.blit(bonus[0], bonus[1])
 
-  main_display.blit(player, player_coords) # placement
-  main_display.blit(FONT.render(f"Score: {score}", True, COLOR_BLACK), (WIDTH - 85, 0))
+  # render
+  if not lost:
+    # pygame.display.update()  # update main display
+    pygame.display.flip()
 
+  # collision and items removal should be processed after render
   for enemy in enemies:
     if player_coords.colliderect(enemy[1]):
-      playing = False
-
+      print(player_coords, enemy[1])
+      lost = True
     if enemy[1].right < 0:
       i = enemies.index(enemy)
       enemies.pop(i)
 
   for bonus in bonuses:
+    bonus[1] = bonus[1].move(bonus[2])
+    main_display.blit(bonus[0], bonus[1])
     if player_coords.colliderect(bonus[1]):
       bonuses.pop(bonuses.index(bonus))
       score += 1
-
     if bonus[1].top > HEIGHT:
       bonuses.pop(bonuses.index(bonus))
-
-  # pygame.display.update() # update main display
-  pygame.display.flip() # update main display
-
-
