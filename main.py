@@ -108,6 +108,7 @@ while playing:
   for bonus in bonuses:
     if player_coords.colliderect(bonus[1]):
       bonuses.pop(bonuses.index(bonus))
+      score += 1
 
     if bonus[1].top > HEIGHT:
       bonuses.pop(bonuses.index(bonus))
