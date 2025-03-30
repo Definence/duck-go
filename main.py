@@ -8,8 +8,8 @@ def adjust_player_size(image):
   return pygame.transform.scale_by(image, 0.8)
 
 def create_enemy():
-  enemy_size = (30, 30)
-  enemy = pygame.Surface(enemy_size); enemy.fill(COLOR_BLUE)
+  enemy = pygame.image.load('images/enemy.png')
+  enemy_size = enemy.get_size()
   top = random.randint(enemy_size[0], HEIGHT - enemy_size[0])
   enemy_coords = pygame.Rect(WIDTH, top, *enemy_size)
   enemy_speed = random.randint(-MAX_ENEMY_SPD, -MIN_ENEMY_SPD)
@@ -17,17 +17,13 @@ def create_enemy():
   return [enemy, enemy_coords, enemy_move]
 
 def create_bonus():
-  bonus_size = (20, 20)
-  bonus = pygame.Surface(bonus_size); bonus.fill(COLOR_YELLOW)
+  bonus = pygame.image.load('images/bonus.png')
+  bonus_size = bonus.get_size()
   left, top = (random.randint(int(WIDTH * 0.1), int(WIDTH * 0.7)), -bonus_size[1])
   bonus_coords = pygame.Rect(left, top, *bonus_size)
   bonus_speed = random.randint(MIN_BONUS_SPD, MAX_BONUS_SPD)
   bonus_move = [0, bonus_speed]
   return [bonus, bonus_coords, bonus_move]
-
-# enemy bonuses images
-# move bonus appearing closer to center
-# move enemy appearing closer to center (slight)
 
 # system
 FPS = pygame.time.Clock(); HEIGHT = 800; WIDTH = 1200; FONT = pygame.font.SysFont('Verdana', 16)
@@ -35,9 +31,9 @@ BG = pygame.transform.scale(pygame.image.load('images/background.png'), (WIDTH, 
 # colors
 COLOR_WHITE = (255, 255, 255); COLOR_YELLOW = (255, 255, 0); COLOR_BLACK = (0, 0, 0); COLOR_BLUE = (0, 0, 255)
 # speed
-BG_SPD = 1; PLAYER_SPD = 3 + BG_SPD;
+BG_SPD = 1; PLAYER_SPD = 3 + BG_SPD
 MIN_BONUS_SPD = 1; MAX_BONUS_SPD = 3
-MIN_ENEMY_SPD = 1 + BG_SPD; MAX_ENEMY_SPD = 6 + BG_SPD;
+MIN_ENEMY_SPD = 1 + BG_SPD; MAX_ENEMY_SPD = 6 + BG_SPD
 # events
 CREATE_ENEMY = pygame.USEREVENT + 1; CREATE_BONUS = pygame.USEREVENT + 2
 
