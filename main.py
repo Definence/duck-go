@@ -9,18 +9,17 @@ def adjust_player_size(image):
 
 def create_enemy():
   enemy_size = (30, 30)
-  enemy = pygame.Surface(enemy_size)
-  enemy.fill(COLOR_BLUE)
-  enemy_coords = pygame.Rect(WIDTH, random.randint(0, HEIGHT), *enemy_size)
+  enemy = pygame.Surface(enemy_size); enemy.fill(COLOR_BLUE)
+  top = random.randint(enemy_size[0], HEIGHT - enemy_size[0])
+  enemy_coords = pygame.Rect(WIDTH, top, *enemy_size)
   enemy_speed = random.randint(-MAX_ENEMY_SPD, -MIN_ENEMY_SPD)
   enemy_move = [enemy_speed, 0]
   return [enemy, enemy_coords, enemy_move]
 
 def create_bonus():
   bonus_size = (20, 20)
-  bonus = pygame.Surface(bonus_size)
-  bonus.fill(COLOR_YELLOW)
-  left, top = (random.randint(0, int(WIDTH / 2)), -bonus_size[1])
+  bonus = pygame.Surface(bonus_size); bonus.fill(COLOR_YELLOW)
+  left, top = (random.randint(int(WIDTH * 0.1), int(WIDTH * 0.7)), -bonus_size[1])
   bonus_coords = pygame.Rect(left, top, *bonus_size)
   bonus_speed = random.randint(MIN_BONUS_SPD, MAX_BONUS_SPD)
   bonus_move = [0, bonus_speed]
