@@ -1,5 +1,6 @@
 import pygame
 import random
+import os
 from pygame.locals import K_DOWN, K_LEFT, K_UP, K_RIGHT
 
 pygame.init()
@@ -35,31 +36,41 @@ BG_SPD = 1; PLAYER_SPD = 3 + BG_SPD
 MIN_BONUS_SPD = 1; MAX_BONUS_SPD = 3
 MIN_ENEMY_SPD = 1 + BG_SPD; MAX_ENEMY_SPD = 6 + BG_SPD
 # events
-CREATE_ENEMY = pygame.USEREVENT + 1; CREATE_BONUS = pygame.USEREVENT + 2
+CREATE_ENEMY = pygame.USEREVENT + 1; CREATE_BONUS = pygame.USEREVENT + 2; CHANGE_PLAYER_IMG = pygame.USEREVENT + 3
+# player
+PLAYER_IMG_DIR = 'images/goose'; PLAYER_IMAGES = os.listdir(PLAYER_IMG_DIR)
 
 # system
 pygame.time.set_timer(CREATE_ENEMY, 1500)
 pygame.time.set_timer(CREATE_BONUS, random.randint(2000, 5000))
+pygame.time.set_timer(CHANGE_PLAYER_IMG, 100)
 main_display = pygame.display.set_mode((WIDTH, HEIGHT)) # tuple(кортеж) immutable
 playing = True; enemies = []; bonuses = []; score = 0
 bg_X1 = 0; bg_X2 = BG.get_width(); bg_move = BG_SPD
 
 # player
 player_image = pygame.image.load('images/player.png')
+player_img_i = 0
 player_size = player_image.get_size()
-player = adjust_player_size(player_image).convert_alpha()
+player = adjust_player_size(player_image)
 player_coords = pygame.Rect(int(WIDTH * 0.1), int(HEIGHT * 0.4), *player_size)
 player_move_down = [0, PLAYER_SPD]; player_move_right = [PLAYER_SPD, 0]; player_move_left = [-PLAYER_SPD, 0]; player_move_up = [0, -PLAYER_SPD]
 
 while playing:
   FPS.tick(144)
   for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-      playing = False
-    if event.type == CREATE_ENEMY:
+    if event.type == CHANGE_PLAYER_IMG:
+      new_player_image = pygame.image.load(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i]))
+      player = adjust_player_size(new_player_image)
+      player_img_i += 1
+      if player_img_i >= len(PLAYER_IMAGES):
+        player_img_i = 0
+    elif event.type == CREATE_ENEMY:
       enemies.append(create_enemy())
-    if event.type == CREATE_BONUS:
+    elif event.type == CREATE_BONUS:
       bonuses.append(create_bonus())
+    elif event.type == pygame.QUIT:
+      playing = False
 
 
   # image animation
