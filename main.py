@@ -5,6 +5,10 @@ from pygame.locals import K_DOWN, K_LEFT, K_UP, K_RIGHT
 
 pygame.init()
 
+def get_player_image(image):
+  # .convert_alpha()
+  return pygame.transform.scale_by(pygame.image.load(image), 0.8)
+
 def create_enemy():
   enemy = pygame.image.load('images/enemy.png').convert_alpha()
   enemy_size = enemy.get_size()
@@ -17,7 +21,7 @@ def create_enemy():
 def create_bonus():
   bonus = pygame.image.load('images/bonus.png').convert_alpha()
   bonus_size = bonus.get_size()
-  left, top = (random.randint(int(WIDTH * 0.1), int(WIDTH * 0.7)), -bonus_size[1])
+  left, top = (random.randint(0, int(WIDTH * 0.7)), -bonus_size[1])
   bonus_coords = pygame.Rect(left, top, *bonus_size)
   bonus_speed = random.randint(MIN_BONUS_SPD, MAX_BONUS_SPD)
   bonus_move = [0, bonus_speed]
@@ -25,13 +29,13 @@ def create_bonus():
 
 # system
 DEBUG_MODE = False  # Add debug mode flag
-FPS = pygame.time.Clock(); HEIGHT = 800; WIDTH = 1200; FONT = pygame.font.SysFont('Verdana', 16)
+FPS = pygame.time.Clock(); FPS_LOCK = 60; HEIGHT = 800; WIDTH = 1200; FONT = pygame.font.SysFont('Verdana', 16)
 BG = pygame.transform.scale(pygame.image.load('images/background.png'), (WIDTH, HEIGHT))
 # colors
 COLOR_WHITE = (255, 255, 255); COLOR_YELLOW = (255, 255, 0); COLOR_BLACK = (0, 0, 0);
 COLOR_BLUE = (0, 0, 255); COLOR_RED = (255, 0, 0)
 # speed
-BG_SPD = 1; PLAYER_SPD = 3 + BG_SPD
+BG_SPD = 1; PLAYER_SPD = 4 + BG_SPD
 MIN_BONUS_SPD = 1; MAX_BONUS_SPD = 3
 MIN_ENEMY_SPD = 1 + BG_SPD; MAX_ENEMY_SPD = 6 + BG_SPD
 # events
@@ -40,15 +44,15 @@ CREATE_ENEMY = pygame.USEREVENT + 1; CREATE_BONUS = pygame.USEREVENT + 2; CHANGE
 PLAYER_IMG_DIR = 'images/goose'; PLAYER_IMAGES = os.listdir(PLAYER_IMG_DIR)
 
 # system
-pygame.time.set_timer(CREATE_ENEMY, 1500)
-pygame.time.set_timer(CREATE_BONUS, random.randint(2000, 5000))
-pygame.time.set_timer(CHANGE_PLAYER_IMG, 100)
+pygame.time.set_timer(CREATE_ENEMY, FPS_LOCK * 25)
+pygame.time.set_timer(CREATE_BONUS, random.randint(FPS_LOCK * 30, FPS_LOCK * 80))
+pygame.time.set_timer(CHANGE_PLAYER_IMG, 80)
 main_display = pygame.display.set_mode((WIDTH, HEIGHT)) # tuple(кортеж) immutable
 playing = True; enemies = []; bonuses = []; score = 0; lost = False
 bg_X1 = 0; bg_X2 = BG.get_width(); bg_move = BG_SPD
 
 # player
-player_image = pygame.image.load('images/player.png').convert_alpha();
+player_image = get_player_image('images/player.png')
 player_size = player_image.get_size(); player = player_image
 # player_size = (20, 20); player = pygame.Surface(player_size)
 player_img_i = 0
@@ -58,11 +62,11 @@ player_move_down = [0, PLAYER_SPD]; player_move_right = [PLAYER_SPD, 0];
 player_move_left = [-PLAYER_SPD, 0]; player_move_up = [0, -PLAYER_SPD]
 
 while playing:
-  FPS.tick(120)
+  FPS.tick(FPS_LOCK)
   for event in pygame.event.get():
     if event.type == CHANGE_PLAYER_IMG:
-      new_pl_image = pygame.image.load(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i])).convert_alpha()
-      prev_pl_image = pygame.image.load(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i_prev])).convert_alpha()
+      new_pl_image = get_player_image(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i]))
+      prev_pl_image = get_player_image(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i_prev]))
 
       s_curr = new_pl_image.get_size(); s_prev = prev_pl_image.get_size()
       w_diff = s_curr[0] - s_prev[0]; h_diff = s_curr[1] - s_prev[1]
@@ -133,7 +137,7 @@ while playing:
     if DEBUG_MODE:
       collision_threshold_x = 0; collision_threshold_y = 0
     else:
-      collision_threshold_x = 20; collision_threshold_y = 10
+      collision_threshold_x = 20; collision_threshold_y = 20
 
     adjusted_player_rect = player_coords.inflate(-collision_threshold_x, -collision_threshold_y)
     adjusted_enemy_rect = enemy[1].inflate(-collision_threshold_x, -collision_threshold_y)
