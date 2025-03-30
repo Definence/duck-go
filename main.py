@@ -4,12 +4,11 @@ import os
 from pygame.locals import K_DOWN, K_LEFT, K_UP, K_RIGHT
 
 pygame.init()
-DEBUG_MODE = True  # Add debug mode flag
 
 def create_enemy():
   enemy = pygame.image.load('images/enemy.png').convert_alpha()
   enemy_size = enemy.get_size()
-  top = random.randint(enemy_size[0], HEIGHT - enemy_size[0])
+  top = random.randint(int(enemy_size[0] / 2), int(HEIGHT - enemy_size[0] / 2))
   enemy_coords = pygame.Rect(WIDTH, top, *enemy_size)
   enemy_speed = random.randint(-MAX_ENEMY_SPD, -MIN_ENEMY_SPD)
   enemy_move = [enemy_speed, 0]
@@ -25,6 +24,7 @@ def create_bonus():
   return [bonus, bonus_coords, bonus_move]
 
 # system
+DEBUG_MODE = False  # Add debug mode flag
 FPS = pygame.time.Clock(); HEIGHT = 800; WIDTH = 1200; FONT = pygame.font.SysFont('Verdana', 16)
 BG = pygame.transform.scale(pygame.image.load('images/background.png'), (WIDTH, HEIGHT))
 # colors
@@ -58,7 +58,7 @@ player_move_down = [0, PLAYER_SPD]; player_move_right = [PLAYER_SPD, 0];
 player_move_left = [-PLAYER_SPD, 0]; player_move_up = [0, -PLAYER_SPD]
 
 while playing:
-  FPS.tick(90)
+  FPS.tick(120)
   for event in pygame.event.get():
     if event.type == CHANGE_PLAYER_IMG:
       new_pl_image = pygame.image.load(os.path.join(PLAYER_IMG_DIR, PLAYER_IMAGES[player_img_i])).convert_alpha()
@@ -129,7 +129,16 @@ while playing:
 
   # collision and items removal should be processed after render
   for enemy in enemies:
-    if player_coords.colliderect(enemy[1]):
+    # Add a small threshold to make collision detection more forgiving
+    if DEBUG_MODE:
+      collision_threshold_x = 0; collision_threshold_y = 0
+    else:
+      collision_threshold_x = 20; collision_threshold_y = 10
+
+    adjusted_player_rect = player_coords.inflate(-collision_threshold_x, -collision_threshold_y)
+    adjusted_enemy_rect = enemy[1].inflate(-collision_threshold_x, -collision_threshold_y)
+
+    if adjusted_player_rect.colliderect(adjusted_enemy_rect):
       lost = True
       pygame.time.wait(2000)
       playing = False
