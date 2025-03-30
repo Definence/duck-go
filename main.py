@@ -4,31 +4,8 @@ from pygame.locals import K_DOWN, K_LEFT, K_UP, K_RIGHT
 
 pygame.init()
 
-# system
-FPS = pygame.time.Clock(); HEIGHT = 800; WIDTH = 1200; FONT = pygame.font.SysFont('Verdana', 16)
-BG = pygame.transform.scale(pygame.image.load('images/background.png'), (WIDTH, HEIGHT))
-# colors
-COLOR_WHITE = (255, 255, 255); COLOR_YELLOW = (255, 255, 0); COLOR_BLACK = (0, 0, 0); COLOR_BLUE = (0, 0, 255)
-# speed
-BG_SPD = 1; PLAYER_SPD = 3 + BG_SPD;
-MIN_BONUS_SPD = 1; MAX_BONUS_SPD = 3
-MIN_ENEMY_SPD = 1 + BG_SPD; MAX_ENEMY_SPD = 6 + BG_SPD;
-# events
-CREATE_ENEMY = pygame.USEREVENT + 1; CREATE_BONUS = pygame.USEREVENT + 2
-
-
-pygame.time.set_timer(CREATE_ENEMY, 1500)
-pygame.time.set_timer(CREATE_BONUS, random.randint(2000, 5000))
-main_display = pygame.display.set_mode((WIDTH, HEIGHT)) # tuple(кортеж) immutable
-playing = True; enemies = []; bonuses = []; score = 0
-bg_X1 = 0; bg_X2 = BG.get_width(); bg_move = BG_SPD
-
-# player
-player_size = (20, 20)
-player = pygame.Surface(player_size)
-player.fill(COLOR_BLACK)
-player_coords = player.get_rect()
-player_move_down = [0, PLAYER_SPD]; player_move_right = [PLAYER_SPD, 0]; player_move_left = [-PLAYER_SPD, 0]; player_move_up = [0, -PLAYER_SPD]
+def adjust_player_size(image):
+  return pygame.transform.scale_by(image, 0.8)
 
 def create_enemy():
   enemy_size = (30, 30)
@@ -48,6 +25,36 @@ def create_bonus():
   bonus_speed = random.randint(MIN_BONUS_SPD, MAX_BONUS_SPD)
   bonus_move = [0, bonus_speed]
   return [bonus, bonus_coords, bonus_move]
+
+# enemy bonuses images
+# move bonus appearing closer to center
+# move enemy appearing closer to center (slight)
+
+# system
+FPS = pygame.time.Clock(); HEIGHT = 800; WIDTH = 1200; FONT = pygame.font.SysFont('Verdana', 16)
+BG = pygame.transform.scale(pygame.image.load('images/background.png'), (WIDTH, HEIGHT))
+# colors
+COLOR_WHITE = (255, 255, 255); COLOR_YELLOW = (255, 255, 0); COLOR_BLACK = (0, 0, 0); COLOR_BLUE = (0, 0, 255)
+# speed
+BG_SPD = 1; PLAYER_SPD = 3 + BG_SPD;
+MIN_BONUS_SPD = 1; MAX_BONUS_SPD = 3
+MIN_ENEMY_SPD = 1 + BG_SPD; MAX_ENEMY_SPD = 6 + BG_SPD;
+# events
+CREATE_ENEMY = pygame.USEREVENT + 1; CREATE_BONUS = pygame.USEREVENT + 2
+
+# system
+pygame.time.set_timer(CREATE_ENEMY, 1500)
+pygame.time.set_timer(CREATE_BONUS, random.randint(2000, 5000))
+main_display = pygame.display.set_mode((WIDTH, HEIGHT)) # tuple(кортеж) immutable
+playing = True; enemies = []; bonuses = []; score = 0
+bg_X1 = 0; bg_X2 = BG.get_width(); bg_move = BG_SPD
+
+# player
+player_image = pygame.image.load('images/player.png')
+player_size = player_image.get_size()
+player = adjust_player_size(player_image).convert_alpha()
+player_coords = pygame.Rect(int(WIDTH * 0.1), int(HEIGHT * 0.4), *player_size)
+player_move_down = [0, PLAYER_SPD]; player_move_right = [PLAYER_SPD, 0]; player_move_left = [-PLAYER_SPD, 0]; player_move_up = [0, -PLAYER_SPD]
 
 while playing:
   FPS.tick(144)
